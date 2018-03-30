@@ -28,33 +28,3 @@
 |               19行 path.h               | PATH_TYPE                |          |                                          |                                          |                            |      |      |
 |            208行 speed_new.c            | img_max_error(图像最大误差)    | 33       | 40，效果有所改善，基本沿赛道轨迹行驶，大拐弯时会冲出赛道可能原因：打滑，舵机打角不合适 |                                          |                            |      |      |
 
-enum PATH_TYPE
-{
-    1	Long_zhidao,//长直道
-    
-    2	Short_zhidao,//短直道
-    
-    3	lean_zhidao,//斜入直道
-    
-    4	Shi_zi,//十字   
-    
-    5	Zhang_ai,//障碍    
-    
-    6	Xiao_S,//小S湾    
-    
-    7	Zhong_S,//中S弯  
-    
-    8	Da_S,//大S弯    
-    
-    9	Xiao_wan,//小弯    
-    
-    10	Zhong_wan,//中弯    
-    
-    11	Da_wan,//大弯   
-    
-    12	T_Da_wan,//特大弯
-    
-    13	Da_turn,//大转向
-    
-    14	Loop_road,//环路
-};
