@@ -7,6 +7,11 @@ uint8 key_state;
 void change_pid();
 uint8 wait_key_down();
 
+key_init(KEY_MAX);//按键初始化  加在主函数的初始化中
+//以下两条语句加在主函数的大循环之前
+while(key_flag == 0)	
+	change_pid();
+//
 typedef enum
 {
     MAIN_UI  =   0,         //按键按下时对应电平
