@@ -4,39 +4,45 @@ int handler_flag;
 void uart4_handler(void)
 {
     char ch;
-	uart_getchar (UART4,&ch);
-	printf("\n**中断中**\n");
-	uart_putchar   (UART4 , ch);       
-	if (ch == 'y'){
-		handler_flag=0;
-		 led (LED1,LED_ON);
-		 led (LED0,LED_ON);
-		 ftm_pwm_duty(FTM0, FTM_CH3,50);
-	}else if (ch == 'n'){
-		handler_flag=1;
-		ftm_pwm_duty(FTM0, FTM_CH3,0);
-		led (LED1,LED_OFF);
-		led (LED0,LED_OFF);
-		led (LED3,LED_OFF);
-	}else if( ch == 'a'){
-		handler_flag=0;
-		led (LED0,LED_ON);
-		ftm_pwm_duty(FTM0, FTM_CH3,30);
-	} else if( ch == 'b'){
-		handler_flag=0;
-		ftm_pwm_duty(FTM0, FTM_CH3,40);
-		led (LED0,LED_OFF);
-	} else if( ch == 'c'){
-		handler_flag=0;
-		led (LED1,LED_ON);
-		ftm_pwm_duty(FTM0, FTM_CH3,20);
-	} else if( ch == 'd'){
-		handler_flag=0;
-		led (LED1,LED_OFF);
-		ftm_pwm_duty(FTM0, FTM_CH3,60);
-//        } else if( ch == 'e'){
-//            ftm_pwm_duty(FTM0, FTM_CH3,70);
-	}
+    UARTn_e uratn = UART4;
+
+    if(UART_S1_REG(UARTN[uratn]) & UART_S1_RDRF_MASK){   //接收数据寄存器满
+        uart_getchar (UART4,&ch);   
+        if (ch == 'y'){
+            handler_flag=0;
+            led (LED1,LED_ON);
+            led (LED0,LED_ON);
+            ftm_pwm_duty(FTM0, FTM_CH3,00);
+            ftm_pwm_duty(FTM0, FTM_CH2,0);
+        }else if (ch == 'n'){
+            handler_flag=1;
+            ftm_pwm_duty(FTM0, FTM_CH3,0);
+            ftm_pwm_duty(FTM0, FTM_CH2,0);
+            led (LED1,LED_OFF);
+            led (LED0,LED_OFF);
+        }else if( ch == 'a'){
+            printf("\n**中断中**\n"); 
+            handler_flag=0;
+            led (LED0,LED_ON);
+            ftm_pwm_duty(FTM0, FTM_CH3,00);
+            ftm_pwm_duty(FTM0, FTM_CH2,0);
+        } else if( ch == 'b'){
+            handler_flag=0;
+            ftm_pwm_duty(FTM0, FTM_CH3,0);
+            ftm_pwm_duty(FTM0, FTM_CH2,0);
+            led (LED0,LED_OFF);
+        } else if( ch == 'c'){
+            handler_flag=0;
+            led (LED1,LED_ON);
+            ftm_pwm_duty(FTM0, FTM_CH3,0);
+            ftm_pwm_duty(FTM0, FTM_CH2,0);
+        } else if( ch == 'd'){
+            handler_flag=0;
+            led (LED1,LED_OFF);
+            ftm_pwm_duty(FTM0, FTM_CH3,0);
+            ftm_pwm_duty(FTM0, FTM_CH2,0);
+        }
+     }
 }
 void main (void)
 {	
