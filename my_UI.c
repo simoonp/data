@@ -128,7 +128,7 @@ void main_ui()
     case 3:zhidao_speed=curve_speed[2][0];CD_speed=curve_speed[2][1];UI_state=0xff;break;
     case 4:UI_state=SET_SPEED_UI;break;
     case 5:UI_state=OPEN_IMG_UI;break;
-    case 6:UI_state=CHANGE_PID;break;		//在my_UI.h（第9行）中把SET_IMG_UI改为CHANGE_PID
+    case 6:UI_state=CHANGE_PID_UI;break;		//在my_UI.h（第9行）中把SET_IMG_UI改为CHANGE_PID
     }
     choose_num=0;
 }
@@ -429,7 +429,7 @@ void  renew_UI()
         {
         case MAIN_UI:main_ui();break;
         case SET_SPEED_UI:set_speed_ui();break;
-        case SET_IMG_UI:chang_pid();break;
+        case CHANGE_PID_UI:chang_pid();break;
         case OPEN_IMG_UI:open_img_ui();break;
         }
     }
