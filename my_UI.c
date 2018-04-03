@@ -14,6 +14,7 @@ uint8 UI_state=MAIN_UI;
 uint8 choose_num=0;
 uint16 cloor_table[8]={BCOLOUR,BCOLOUR,BCOLOUR,BCOLOUR,BCOLOUR,BCOLOUR,BCOLOUR,BCOLOUR};
 void draw_mark_line();
+float change_n[5]={0.1, 1, 2, 5, 10};
 uint8 wait_key_down()
 {
     uint8 ret_key=0xff;
@@ -128,7 +129,7 @@ void main_ui()
     case 3:zhidao_speed=curve_speed[2][0];CD_speed=curve_speed[2][1];UI_state=0xff;break;
     case 4:UI_state=SET_SPEED_UI;break;
     case 5:UI_state=OPEN_IMG_UI;break;
-    case 6:UI_state=CHANGE_PID_UI;break;		//在my_UI.h（第9行）中把SET_IMG_UI改为CHANGE_PID
+    case 6:UI_state=CHANGE_PID_UI;break;		//在my_UI.h（第9行）中把SET_IMG_UI改为CHANGE_PID_UI
     }
     choose_num=0;
 }
@@ -256,8 +257,8 @@ void change_pid()
 {
 	Site_t site;
 	uint8 str_buf[STR_BUF_LEN];
-    int n;
-    n = 1;
+    float n = 1.0;
+	int i = 0;
     uint8 char_H=22,key_num;
     LCD_init();            //初始化
     while(1){
@@ -338,9 +339,10 @@ void change_pid()
             }
             else  if(choose_num==7)
             {
-                n+=1;
-                if(n > 5)
-                    n=5;
+                n = change_n[i];
+				i++;
+                if(i > 5)
+                    i=5;
             }
         }
         else if(key_num==KEY_D)
@@ -371,9 +373,10 @@ void change_pid()
             }
             else  if(choose_num==7)
             {
-                n -= 1;
-                if(n < 0)
-                    n=0;
+                n = change_n[i];
+				i--;
+                if(i < 0)
+                    i=0;
             }
         }
         else if(key_num==KEY_R)
