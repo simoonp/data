@@ -253,14 +253,14 @@ void set_speed_ui()
         
     }
 }
-void change_pid()
+void change_pid_ui()
 {
 	Site_t site;
 	uint8 str_buf[STR_BUF_LEN];
-    float n = 1.0;
-	int i = 0;
+    //float n = 1.0;
+	int n = 0;
     uint8 char_H=22,key_num;
-    LCD_init();            //初始化
+    LCD_init();        //初始化
     while(1){
         site.y = 5;
         site.x=3; 
@@ -305,100 +305,82 @@ void change_pid()
         
         site.x= 10*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%d",n);
+        sprintf((char *)str_buf,"%.1f",change_n[n]);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[7]);   //显示8*16字符串
         //--------------------------------------
         cloor_table[choose_num]=BCOLOUR;
         key_num=wait_key_down();
 
-        if(key_num==KEY_U)
-        {   
-            if(choose_num<4)
-            {
+        if(key_num==KEY_U){   
+            if(choose_num<4){
+                if(choose_num == 0)
+                  choose_num=4;
                 choose_num--;
-                if(choose_num>8)
-                  choose_num=2;
             }
-            else  if(choose_num==4)
-            {
-                pid.Kp += n;
+            else  if(choose_num==4){
+                pid.Kp += change_n[n];
                 if(pid.Kp > 200)
                     pid.Kp=200;
             }
-            else  if(choose_num==5)
-            {
-                pid.Ti+=n;
+            else  if(choose_num==5){
+                pid.Ti+=change_n[n];
                 if(pid.Ti > 100)
                     pid.Ti=100;
             }
-            else  if(choose_num==6)
-            {
-                pid.Td+=n;
+            else  if(choose_num==6){
+                pid.Td+=change_n[n];
                 if(pid.Td > 100)
                     pid.Td=100;
             }
-            else  if(choose_num==7)
-            {
-                n = change_n[i];
-				i++;
-                if(i > 5)
-                    i=5;
+            else  if(choose_num==7){
+		n++;
+                if(n > 4)
+                    n=4;
             }
         }
-        else if(key_num==KEY_D)
-        {   
-            if(choose_num<4)
-            {
+        else if(key_num==KEY_D){   
+            if(choose_num<4){
                 choose_num++;
                 if(choose_num == 4)
                   choose_num=0;
             }
-            else  if(choose_num==4)
-            {
-                pid.Kp-=n;
+            else  if(choose_num==4){
+                pid.Kp-=change_n[n];
                 if(pid.Kp<0)
                     pid.Kp=0;
             }
-            else  if(choose_num==5)
-            {
-                pid.Ti-=n;
+            else  if(choose_num==5){
+                pid.Ti-=change_n[n];
                 if(pid.Ti < 0)
                     pid.Ti=0;
             }
-            else  if(choose_num==6)
-            {
-                pid.Td-=n;
+            else  if(choose_num==6){
+                pid.Td-=change_n[n];
                 if(pid.Td < 0)
                     pid.Td=0;
             }
-            else  if(choose_num==7)
-            {
-                n = change_n[i];
-				i--;
-                if(i < 0)
-                    i=0;
+            else  if(choose_num==7){
+		n--;
+                if(n < 0)
+                    n=0;
             }
         }
-        else if(key_num==KEY_R)
-        {
+        else if(key_num==KEY_R){
             if(choose_num<4)
               choose_num+=4;
         }
-        else if(key_num==KEY_L)
-        {
-            if(choose_num<4)
-            {
+        else if(key_num==KEY_L){
+            if(choose_num<4){
                 choose_num=0;
-                key_flag=1;
+ //               key_flag=1;
                 break;
             }
             else
-              choose_num=0;
+              choose_num-=4;
         }
-            else if(key_num==KEY_B)
-        {
+        else if(key_num==KEY_B){
             choose_num=0;
-            key_flag=1;
+ //           key_flag=1;
             break;
         }
     }
@@ -432,7 +414,7 @@ void  renew_UI()
         {
         case MAIN_UI:main_ui();break;
         case SET_SPEED_UI:set_speed_ui();break;
-        case CHANGE_PID_UI:chang_pid();break;
+        case CHANGE_PID_UI:chang_pid_ui();break;
         case OPEN_IMG_UI:open_img_ui();break;
         }
     }
