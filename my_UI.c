@@ -1,14 +1,16 @@
-#include "my_UI.h"
-#include "control.h"
-#include "speed_new.h"
-#include "VCAN_LCD.h"
-#include "path.h"
-#include "my_cfg.h"
-#include "VCAN_key.h"
+//#include "my_UI.h"
+//#include "control.h"
+//#include "speed_new.h"
+//#include "VCAN_LCD.h"
+//#include "path.h"
+//#include "my_cfg.h"
+//#include "VCAN_key.h"
+#include "common.h"
+#include "include.h"
 //开机 界面有几种速度选项 及图像还有图像阈值选项
 //交互：向左返回上一菜单，右键跟近下一个，长按中间的按键返回主菜单。
 //******主菜单第一项是起跑**** 中间件确认 长按0.3秒
-//
+//如果显示的字符背景色错乱，检查头文件LCD.h中LCD_EN_W定义的字符宽度与LCD.c中LCD_str()函数中site.x是否相等
 uint8 key_state;
 uint8 UI_state=MAIN_UI;
 uint8 choose_num=0;
@@ -52,9 +54,33 @@ uint8 wait_key_down()
           break;
       }
       camera_get_img();
-      ctrl_main();
+//      ctrl_main();
     }
     return ret_key;
+}
+
+void draw_mark_line()
+{
+    uint16 x=0,y=0;
+    Site_t site;
+    for(y=0;y<IMG_H;y+=10)
+    {
+        for(x=0;x<IMG_W;x++)
+        {
+            site.x=x;
+            site.y=y;
+            LCD_point(site,RED);
+        }
+    }
+    for(y=0;y<IMG_H;y++)
+    {
+        for(x=0;x<IMG_W;x+=10)
+        {
+            site.x=x;
+            site.y=y;
+            LCD_point(site,RED);
+        }
+    }
 }
 
 void main_ui()
@@ -66,7 +92,7 @@ void main_ui()
     {
         site.y = 5;
         site.x = 3;
-        cloor_table[choose_num]=RED;
+        cloor_table[choose_num]=Selected_color;
         LCD_clear(BCOLOUR);
         memset(str_buf,0,STR_BUF_LEN);
         sprintf((char *)str_buf,"0 run       ");
@@ -93,8 +119,9 @@ void main_ui()
         LCD_str(site,str_buf,FCOLOUR,cloor_table[5]);   //显示8*16字符串
         site.y += char_H;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"6 chang pid ");
+        sprintf((char *)str_buf,"6 change pid");
         LCD_str(site,str_buf,FCOLOUR,cloor_table[6]);   //显示8*16字符串
+        
         cloor_table[choose_num]=BCOLOUR;
         key_num=wait_key_down();
         if(key_num==KEY_U)
@@ -138,14 +165,14 @@ void set_speed_ui()
     uint8 str_buf[STR_BUF_LEN];
     uint8 char_H=22,key_num;
     Site_t site = {3,5};
-    int kpv=kp_val;
+    float kpv=kp_val;
     while(1)
     {
       //ring_road_w
         
         site.y = 5;
         site.x=3; 
-        cloor_table[choose_num]=RED;
+        cloor_table[choose_num]=Selected_color;
         LCD_clear(BCOLOUR);
         memset(str_buf,0,STR_BUF_LEN);
         sprintf((char *)str_buf,"max speed   ");
@@ -159,7 +186,7 @@ void set_speed_ui()
         site.y += char_H;
         site.x = 3;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"min");
+        sprintf((char *)str_buf,"min speed   ");
         LCD_str(site,str_buf,FCOLOUR,cloor_table[1]);   //显示8*16字符串
         site.x= 12*8;
         memset(str_buf,0,STR_BUF_LEN);
@@ -172,7 +199,7 @@ void set_speed_ui()
         LCD_str(site,str_buf,FCOLOUR,cloor_table[2]);   //显示8*16字符串
         site.x= 12*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%d",kpv);
+        sprintf((char *)str_buf,"%.1f",kpv);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[5]);   //显示8*16字符串
         cloor_table[choose_num]=BCOLOUR;
         key_num=wait_key_down();
@@ -180,9 +207,9 @@ void set_speed_ui()
         {   
             if(choose_num<3)
             {
-                choose_num--;
-                if(choose_num>6)
-                  choose_num=2;
+                choose_num++;
+                if(choose_num == 3)
+                  choose_num=0;
             }
             else  if(choose_num==3)
             {
@@ -206,9 +233,9 @@ void set_speed_ui()
         {
             if(choose_num<3)
             {
-                choose_num++;
-                if(choose_num==5)
+                if(choose_num == 0)
                   choose_num=0;
+                choose_num--;
             }
             else  if(choose_num==3)
             {
@@ -259,12 +286,12 @@ void change_pid_ui()
 	uint8 str_buf[STR_BUF_LEN];
     //float n = 1.0;
 	int n = 0;
-    uint8 char_H=22,key_num;
+    uint8 char_H=20,key_num;
     LCD_init();        //初始化
     while(1){
         site.y = 5;
         site.x=3; 
-        cloor_table[choose_num]=GRED;        
+        cloor_table[choose_num]=Selected_color;        
         LCD_clear(BCOLOUR);
         memset(str_buf,0,STR_BUF_LEN);
         sprintf((char *)str_buf,"Kp:");
@@ -272,7 +299,7 @@ void change_pid_ui()
 
         site.x += 10*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%.1f",pid.Kp);
+        sprintf((char *)str_buf,"%.1f",moto_system_Kp);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[4]); 
         //----------------------------------------------
         site.y += char_H;
@@ -283,7 +310,7 @@ void change_pid_ui()
         
         site.x= 10*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%.1f",pid.Ti);
+        sprintf((char *)str_buf,"%.1f",moto_system_Ti);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[5]);   //显示8*16字符串
         //------------------------------------------------
         site.y += char_H;
@@ -294,7 +321,7 @@ void change_pid_ui()
         
         site.x= 10*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%.1f",pid.Td);
+        sprintf((char *)str_buf,"%.1f",moto_system_Td);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[6]);   //显示8*16字符串
         //-----------------------------------------------
         site.y += char_H;
@@ -318,19 +345,19 @@ void change_pid_ui()
                 choose_num--;
             }
             else  if(choose_num==4){
-                pid.Kp += change_n[n];
-                if(pid.Kp > 200)
-                    pid.Kp=200;
+                moto_system_Kp += change_n[n];
+                if(moto_system_Kp > 200)
+                    moto_system_Kp=200;
             }
             else  if(choose_num==5){
-                pid.Ti+=change_n[n];
-                if(pid.Ti > 100)
-                    pid.Ti=100;
+                moto_system_Ti+=change_n[n];
+                if(moto_system_Ti > 100)
+                    moto_system_Ti=100;
             }
             else  if(choose_num==6){
-                pid.Td+=change_n[n];
-                if(pid.Td > 100)
-                    pid.Td=100;
+                moto_system_Td+=change_n[n];
+                if(moto_system_Td > 100)
+                    moto_system_Td=100;
             }
             else  if(choose_num==7){
 		n++;
@@ -345,19 +372,19 @@ void change_pid_ui()
                   choose_num=0;
             }
             else  if(choose_num==4){
-                pid.Kp-=change_n[n];
-                if(pid.Kp<0)
-                    pid.Kp=0;
+                moto_system_Kp-=change_n[n];
+                if(moto_system_Kp<0)
+                    moto_system_Kp=0;
             }
             else  if(choose_num==5){
-                pid.Ti-=change_n[n];
-                if(pid.Ti < 0)
-                    pid.Ti=0;
+                moto_system_Ti-=change_n[n];
+                if(moto_system_Ti < 0)
+                    moto_system_Ti=0;
             }
             else  if(choose_num==6){
-                pid.Td-=change_n[n];
-                if(pid.Td < 0)
-                    pid.Td=0;
+                moto_system_Td-=change_n[n];
+                if(moto_system_Td < 0)
+                    moto_system_Td=0;
             }
             else  if(choose_num==7){
 		n--;
@@ -372,7 +399,7 @@ void change_pid_ui()
         else if(key_num==KEY_L){
             if(choose_num<4){
                 choose_num=0;
- //               key_flag=1;
+                UI_state=MAIN_UI;
                 break;
             }
             else
@@ -380,7 +407,7 @@ void change_pid_ui()
         }
         else if(key_num==KEY_B){
             choose_num=0;
- //           key_flag=1;
+            UI_state=MAIN_UI;
             break;
         }
     }
@@ -400,21 +427,22 @@ void open_img_ui()
         LCD_rectangle(site, size, BCOLOUR);     //初始化背景
         LCD_Img_Binary_Z(site, size, imgbuff, imgsize);//显示二值化图像(可缩放)
         draw_mark_line();//在图像上面划红线（便于看图像）
-        ctrl_main();//控制主函数
+//        ctrl_main();//控制主函数
         
     }
     UI_state=MAIN_UI;
     my_debug_flag=0;
 }
-void  renew_UI()
+void my_UI()
 {
     while(UI_state<5)
     {
+        printf("%f\n%f\n%f\n",moto_system_Td,moto_system_Ti,moto_system_Kp);
         switch(UI_state)
         {
         case MAIN_UI:main_ui();break;
         case SET_SPEED_UI:set_speed_ui();break;
-        case CHANGE_PID_UI:chang_pid_ui();break;
+        case CHANGE_PID_UI:change_pid_ui();break;
         case OPEN_IMG_UI:open_img_ui();break;
         }
     }
