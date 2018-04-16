@@ -1,3 +1,5 @@
+
+
 //#include "my_UI.h"
 //#include "control.h"
 //#include "speed_new.h"
@@ -10,7 +12,7 @@
 //开机 界面有几种速度选项 及图像还有图像阈值选项
 //交互：向左返回上一菜单，右键跟近下一个，长按中间的按键返回主菜单。
 //******主菜单第一项是起跑**** 中间件确认 长按0.3秒
-//如果显示的字符背景色错乱，检查头文件LCD.h中LCD_EN_W定义的字符宽度与LCD.c中LCD_str()函数中site.x是否相等
+//
 uint8 key_state;
 uint8 UI_state=MAIN_UI;
 uint8 choose_num=0;
@@ -19,7 +21,7 @@ void draw_mark_line();
 float change_n[5]={0.1, 1, 2, 5, 10};
 uint8 wait_key_down()
 {
-    uint8 ret_key=0xff;
+    int ret_key=KEY_MAX;
     uint16 key_time=0;
     while(1)
     {
@@ -39,7 +41,7 @@ uint8 wait_key_down()
           ret_key=KEY_B;
       // if(key_check(KEY_STOP)==KEY_DOWN)
           // ret_key=KEY_STOP;
-      if(ret_key!=0xff)
+      if(ret_key!=KEY_MAX)
       {
           key_state=KEY_DOWN;
           while(key_get(ret_key)==KEY_DOWN)
@@ -54,7 +56,8 @@ uint8 wait_key_down()
           break;
       }
       camera_get_img();
-//      ctrl_main();
+      image_processing();
+      
     }
     return ret_key;
 }
@@ -151,9 +154,9 @@ void main_ui()
     switch(choose_num)
     {
     case 0:UI_state=0xff;break;	//speed_table[][2], 修改为curve_speed[][2]，在my_cfg.c中
-    case 1:zhidao_speed=curve_speed[0][0];CD_speed=curve_speed[0][1];UI_state=0xff;break;
-    case 2:zhidao_speed=curve_speed[1][0];CD_speed=curve_speed[1][1];UI_state=0xff;break;
-    case 3:zhidao_speed=curve_speed[2][0];CD_speed=curve_speed[2][1];UI_state=0xff;break;
+    case 1:curve_speed_max=curve_speed[0][0];curve_speed_min=curve_speed[0][1];UI_state=0xff;break;
+    case 2:curve_speed_max=curve_speed[1][0];curve_speed_min=curve_speed[1][1];UI_state=0xff;break;
+    case 3:curve_speed_max=curve_speed[2][0];curve_speed_min=curve_speed[2][1];UI_state=0xff;break;
     case 4:UI_state=SET_SPEED_UI;break;
     case 5:UI_state=OPEN_IMG_UI;break;
     case 6:UI_state=CHANGE_PID_UI;break;		//在my_UI.h（第9行）中把SET_IMG_UI改为CHANGE_PID_UI
@@ -165,7 +168,7 @@ void set_speed_ui()
     uint8 str_buf[STR_BUF_LEN];
     uint8 char_H=22,key_num;
     Site_t site = {3,5};
-    float kpv=kp_val;
+    float kpv=Kp_base;
     while(1)
     {
       //ring_road_w
@@ -180,7 +183,7 @@ void set_speed_ui()
         
         site.x += 12*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%d",zhidao_speed);
+        sprintf((char *)str_buf,"%d",curve_speed_max);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[3]);   //显示8*16字符串
 
         site.y += char_H;
@@ -190,7 +193,7 @@ void set_speed_ui()
         LCD_str(site,str_buf,FCOLOUR,cloor_table[1]);   //显示8*16字符串
         site.x= 12*8;
         memset(str_buf,0,STR_BUF_LEN);
-        sprintf((char *)str_buf,"%d",CD_speed);
+        sprintf((char *)str_buf,"%d",curve_speed_min);
         LCD_str(site,str_buf,FCOLOUR,cloor_table[4]);   //显示8*16字符串
         site.y += char_H;
         site.x = 3;
@@ -213,20 +216,20 @@ void set_speed_ui()
             }
             else  if(choose_num==3)
             {
-                zhidao_speed-=2;
-                if(zhidao_speed<CD_speed)
-                  zhidao_speed=CD_speed;
+                curve_speed_max-=2;
+                if(curve_speed_max<curve_speed_min)
+                  curve_speed_max=curve_speed_min;
             }
             else  if(choose_num==4)
             {
-                CD_speed-=2;
-                if(CD_speed>250)
-                  CD_speed=0;
+                curve_speed_min-=2;
+                if(curve_speed_min>250)
+                  curve_speed_min=0;
             }
             else  if(choose_num==5)
             {
                 kpv-=1;
-                kp_val=kpv;
+                Kp_base=kpv;
             }
         }
         else if(key_num==KEY_U)
@@ -239,20 +242,20 @@ void set_speed_ui()
             }
             else  if(choose_num==3)
             {
-                zhidao_speed+=2;
-                if(zhidao_speed>250)
-                  zhidao_speed=250;
+                curve_speed_max+=2;
+                if(curve_speed_max>250)
+                  curve_speed_max=250;
             }
             else  if(choose_num==4)
             {
-                CD_speed+=2;
-                if(CD_speed>zhidao_speed)
-                  CD_speed=zhidao_speed;
+                curve_speed_min+=2;
+                if(curve_speed_min>curve_speed_max)
+                  curve_speed_min=curve_speed_max;
             }
               else  if(choose_num==5)
             {
                 kpv+=1;
-                kp_val=kpv;
+                Kp_base=kpv;
             }
         }
         else if(key_num==KEY_R)
@@ -417,17 +420,19 @@ void open_img_ui()
 {
     Site_t site     = {0, 0}; 
     Size_t size;
+    Size_t size_lcd = {LCD_W,LCD_W};
     size.H= CAMERA_H;
     size.W = CAMERA_W;
     Size_t imgsize  = {CAMERA_W, CAMERA_H};             //图像大小
     my_debug_flag=1;
+//    LCD_clear(WHITE);
     while(key_check(KEY_L)!=KEY_DOWN&&key_check(KEY_B)!=KEY_DOWN)
     {
         camera_get_img();                                   //摄像头获取图像 
-        LCD_rectangle(site, size, BCOLOUR);     //初始化背景
+        LCD_rectangle(site, size_lcd, WHITE);     //初始化背景
         LCD_Img_Binary_Z(site, size, imgbuff, imgsize);//显示二值化图像(可缩放)
         draw_mark_line();//在图像上面划红线（便于看图像）
-//        ctrl_main();//控制主函数
+        image_processing();//控制主函数
         
     }
     UI_state=MAIN_UI;
