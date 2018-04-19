@@ -54,7 +54,7 @@
 }
 9、enter.h{
 	添加选中字体颜色
-	#define Selected_color  BRED    //司明朋
+	#define Selected_color  BRED    // 
 }
 10、彩屏调整{
 	在彩屏初始化函数 LCD_init() 中取消LCD_SET_DIR(LCD_DIR+1)的注释以旋转屏幕，在K66的程序中，要在VCAN_LCD_ST7735S.h中第25行将 ST7735S_DIR_DEFAULT 配置为1 
@@ -92,7 +92,7 @@
 	}
 	////////////////////////////////////////////
 	在void fitting_mid_line()末尾添加
-	/////////彩屏画线///司明朋////////////////
+	/////////彩屏画线/// ////////////////
     if(my_debug_flag == 1){
         if(my_debug_flag==1){
             for(row=START_Y; row<=valid_line; row++)
@@ -106,7 +106,7 @@
 	}
     ///////////////////////////////////
 	在void tixing_jiaozheng()末尾添加
-	////////小彩屏画线///////// 司明朋/////////////////
+	////////小彩屏画线/////////  /////////////////
 	if(my_debug_flag==1)
 	{
 		test_draw_point(LCD_H-row,left_bundary[row]-50,0X001F);
